@@ -1,12 +1,20 @@
 # ask-secret
 
-<p align="center"><img src="docs/screenshot.png" alt="ask-secret pop-up asking for a Stripe API key" width="480"></p>
+Native macOS prompts for coding agents that need a credential.
 
-When a coding agent needs an API key or your sudo password, the usual move is to paste it into the chat. That puts the secret in the transcript, in the logs, and on the model provider's servers.
+<p align="center"><img src="docs/screenshot.png" alt="ask-secret prompting for a Stripe API key" width="480"></p>
 
-ask-secret gives the agent a different way to ask. It opens a small macOS pop-up that says which agent is asking, from which folder, and why. You paste the value there. The agent gets it, and the chat never sees it.
+Coding agents regularly need an API key, a token or a sudo password to finish a task. Anything typed into an agent's chat is stored in its transcript and sent to the model provider, so the chat is the wrong place for a credential.
 
-Keys you want to reuse are saved in your login Keychain, so you're only asked once. Sudo passwords are never saved.
+ask-secret gives agents a separate channel. The agent runs one command, a native prompt appears on your Mac, and the value goes straight back to the agent's process. The chat only ever sees that the secret was provided.
+
+## Features
+
+- **Clear requests.** Every prompt shows which agent is asking, the folder it's working in, the reason it gave, and where to find the value.
+- **Asked once.** Keys are stored in your login Keychain and reused on later requests.
+- **sudo without storing passwords.** The password is passed directly to `sudo`, locally or on a remote host over SSH, and never written anywhere.
+- **Works with any agent.** Installs as a skill for Claude Code, Codex, Cursor and the other agents supported by [skills.sh](https://skills.sh).
+- **Small and local.** One shell script and one Swift file. No services, no accounts, no network calls of its own.
 
 ## Install
 
@@ -14,44 +22,44 @@ Keys you want to reuse are saved in your login Keychain, so you're only asked on
 npx skills add theexperiencecompany/ask-secret -g
 ```
 
-This works with Claude Code, Codex, Cursor and the other agents [skills.sh](https://skills.sh) supports. After that, your agent knows to use it whenever it needs a credential.
-
-You need macOS and Apple's command line tools (`xcode-select --install`). The pop-up is a small Swift program, built on first use.
-
-To run it yourself, put it on your PATH from wherever your agent installed the skill (for Claude Code that's `~/.claude/skills`):
+Your agent will use it whenever it needs a credential. To use the command yourself, add it to your PATH:
 
 ```sh
 ~/.claude/skills/ask-secret/bin/ask-secret install
 ```
 
-## Use
+The path above is where Claude Code installs skills; other agents use their own skills folder.
 
-You don't need to remember any of this. Your agent runs it. But if you want to:
+Requires macOS 12 or later and Apple's command line tools (`xcode-select --install`). The prompt is compiled on first use.
+
+## Usage
+
+| Command | Description |
+| --- | --- |
+| `ask-secret get NAME --what TEXT --why TEXT [--where URL]` | Return a stored secret, prompting and storing it if it doesn't exist yet |
+| `ask-secret sudo --why TEXT [--on HOST] -- COMMAND` | Prompt for the sudo password and run `COMMAND`, locally or on `HOST` over SSH |
+| `ask-secret once --what TEXT --why TEXT [--where URL]` | Prompt for a value without storing it |
+| `ask-secret list` | List stored secrets |
+| `ask-secret has NAME` | Exit 0 if `NAME` is stored |
+| `ask-secret forget NAME` | Delete a stored secret |
 
 ```sh
-# Get a saved key, or ask for it the first time
-ask-secret get stripe --what "Stripe API key" --why "Set up the webhook" --where "https://dashboard.stripe.com/apikeys"
+STRIPE_KEY=$(ask-secret get stripe \
+  --what "Stripe API key" \
+  --why "Set up the webhook for the new checkout flow" \
+  --where "https://dashboard.stripe.com/apikeys")
 
-# Run a command with sudo, here or on another machine over SSH
-ask-secret sudo --why "Restart nginx" --on my-server -- systemctl restart nginx
-
-# Ask for something once without saving it
-ask-secret once --what "Wi-Fi password" --why "Join the office network"
-
-# See, check and remove saved keys
-ask-secret list
-ask-secret has stripe
-ask-secret forget stripe
+ask-secret sudo --on staging --why "Restart nginx after the config change" -- systemctl restart nginx
 ```
 
-In the pop-up, Enter saves, Esc cancels, and "Show" lets you check what you pasted. If you don't answer within 10 minutes it closes and the agent is told you cancelled.
+In the prompt, Return saves, Escape cancels, and Show reveals the value. Unanswered prompts close after 10 minutes. Exit codes are 0 for success, 1 for cancelled and 2 for a usage error.
 
-## Where things are kept
+## Security
 
-Saved keys go in your login Keychain under `agent/<name>`. You can see, edit or delete them in Keychain Access. Nothing is sent anywhere else.
+Stored secrets live in your login Keychain under `agent/<name>` and can be viewed or removed in Keychain Access.
 
-A secret the agent has read is in its working memory for that task. ask-secret keeps it out of the chat and off disk, but it doesn't stop an agent from misusing a value you hand it. Only give an agent keys you'd trust it with, and prefer short-lived or narrowly scoped ones.
+ask-secret keeps credentials out of chat transcripts, logs and the model provider. It does not limit what an agent does with a value once it has one. Grant agents only the access they need, and prefer short-lived or narrowly scoped keys.
 
 ## License
 
-MIT
+[MIT](LICENSE)
