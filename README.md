@@ -18,10 +18,10 @@ This works with Claude Code, Codex, Cursor and the other agents [skills.sh](http
 
 You need macOS and Apple's command line tools (`xcode-select --install`). The pop-up is a small Swift program, built on first use.
 
-To run it yourself, put it on your PATH:
+To run it yourself, put it on your PATH from wherever your agent installed the skill (for Claude Code that's `~/.claude/skills`):
 
 ```sh
-~/.agents/skills/ask-secret/bin/ask-secret install
+~/.claude/skills/ask-secret/bin/ask-secret install
 ```
 
 ## Use
