@@ -1,6 +1,6 @@
 # ask-secret
 
-![ask-secret pop-up](docs/screenshot.png)
+<p align="center"><img src="docs/screenshot.png" alt="ask-secret pop-up asking for a Stripe API key" width="480"></p>
 
 When a coding agent needs an API key or your sudo password, the usual move is to paste it into the chat. That puts the secret in the transcript, in the logs, and on the model provider's servers.
 
